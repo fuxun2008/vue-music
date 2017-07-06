@@ -6,7 +6,7 @@
           <slider>
             <div v-for="item in recommends">
               <a :href="item.linkUrl">
-                <img :src="item.picUrl" alt="" />
+                <img @load="loadImage" :src="item.picUrl" alt="image" />
               </a>
             </div>
           </slider>
@@ -16,7 +16,7 @@
           <ul>
             <li v-for="item in discList" class="item">
               <div class="icon">
-                <img :src="item.imgurl" width="60" height="60" alt="item.creator.name">
+                <img v-lazy="item.imgurl" width="60" height="60" alt="item.creator.name">
               </div>
               <div class="text">
                 <h2 class="name" v-html="item.creator.name"></h2>
@@ -44,7 +44,8 @@
     data() {
       return {
         recommends: [],
-        discList: []
+        discList: [],
+        checkLoaded: false
       }
     },
     created() {
@@ -67,6 +68,12 @@
             this.discList = res.data.list
           }
         })
+      },
+      loadImage() {
+        if (!this.checkLoaded) {
+          this.$refs.scroll.refresh()
+          this.checkLoaded = true
+        }
       }
     }
   }
