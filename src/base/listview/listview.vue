@@ -18,7 +18,12 @@
         </ul>
       </li>
     </ul>
-    <div class="list-shortcut" @touchstart="onShortCutTouchStart" @touchmove.stop.prevent="onShortCutTouchMove">
+    <div
+      class="list-shortcut"
+      @touchstart.stop.prevent="onShortCutTouchStart"
+      @touchmove.stop.prevent="onShortCutTouchMove"
+      @touchend.stop
+    >
       <ul>
         <li v-for="(item, index) in shortCutList"
           class="item"
@@ -29,6 +34,9 @@
         </li>
       </ul>
     </div>
+    <div v-show="fixedTitle" ref="fixed" class="list-fixed">
+      <h1 class="fixed-title">{{fixedTitle}}</h1>
+    </div>
   </scroll>
 </template>
 
@@ -37,6 +45,7 @@
   import {getData} from 'common/js/dom'
 
   const ANCHOR_HEIGHT = 18
+  const TITLE_HEIGHT = 30
 
   export default {
     props: {
@@ -51,7 +60,8 @@
     data() {
       return {
         scrollY: -1,
-        currentIndex: 0
+        currentIndex: 0,
+        diff: -1
       }
     },
     computed: {
@@ -59,6 +69,12 @@
         return this.data.map(group => {
           return group.title.substring(0, 1)
         })
+      },
+      fixedTitle() {
+        if (this.scrollY > 0) {
+          return ''
+        }
+        return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
       }
     },
     watch: {
@@ -69,16 +85,32 @@
       },
       scrollY(newY) {
         const listHeight = this.listHeight
+        // 当滚动到顶部，newY>0
+        if (newY > 0) {
+          this.currentIndex = 0
+          return
+        }
+        // 在中间部分滚动
         for (let i = 0; i < listHeight.length; i++) {
           let heightBegin = listHeight[i]
           let heightEnd = listHeight[i + 1]
-          if (!heightEnd || (-newY > heightBegin && -newY < heightEnd)) {
+          if (-newY >= heightBegin && -newY < heightEnd) {
             this.currentIndex = i
+            this.diff = heightEnd + newY
             console.log(this.currentIndex)
             return
           }
         }
-        this.currentIndex = 0
+        // 当滚动到底部，且-newY大于最后一个元素的上限
+        this.currentIndex = listHeight.length - 2
+      },
+      diff(newVal) {
+        let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
+        if (this.fixedTop === fixedTop) {
+          return
+        }
+        this.fixedTop = fixedTop
+        this.$refs.fixed.style.transform = `translate3d(0, ${fixedTop}px, 0)`
       }
     },
     created() {
@@ -183,7 +215,7 @@
           color: $color-theme
     .list-fixed
       position: absolute
-      top: 0
+      top: -1px
       left: 0
       width: 100%
       .fixed-title
