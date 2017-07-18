@@ -102,7 +102,6 @@
           if (-newY >= heightBegin && -newY < heightEnd) {
             this.currentIndex = i
             this.diff = heightEnd + newY
-            console.log(this.currentIndex)
             return
           }
         }
@@ -141,6 +140,9 @@
         let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0
         let anchorIndex = parseInt(this.touch.anchorIndex, 10) + delta
         this._scrollTo(anchorIndex)
+      },
+      refresh() {
+        this.$refs.listview.refresh()
       },
       scroll(pos) {
         this.scrollY = pos.y
