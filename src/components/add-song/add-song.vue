@@ -18,6 +18,11 @@
               <song-list :songs="playHistory" @select="selectSong"></song-list>
             </div>
           </scroll>
+          <scroll ref="searchList" class="list-scroll" v-if="currentIndex === 1" :data="searchHistory">
+            <div class="list-inner">
+              <search-list @delete="deleteSearchHistory" @select="addQuery" :searches="searchHistory"></search-list>
+            </div>
+          </scroll>
         </div>
       </div>
       <div class="search-result" v-show="query">
@@ -35,6 +40,7 @@
   import Scroll from 'base/scroll/scroll'
   import {mapGetters, mapActions} from 'vuex'
   import SongList from 'base/song-list/song-list'
+  import SearchList from 'base/search-list/search-list'
   import Song from 'api/song'
 
   export default {
@@ -44,7 +50,8 @@
       Suggest,
       Switches,
       Scroll,
-      SongList
+      SongList,
+      SearchList
     },
     data() {
       return {
@@ -66,6 +73,13 @@
     methods: {
       show() {
         this.showFlag = true
+        setTimeout(() => {
+          if (this.currentIndex === 0) {
+            this.$refs.songList.refresh()
+          } else {
+            this.$refs.searchList.refresh()
+          }
+        }, 20)
       },
       hide() {
         this.showFlag = false
